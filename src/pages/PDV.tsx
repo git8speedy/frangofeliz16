@@ -460,7 +460,7 @@ export default function PDV() {
     setShowCustomerDialog(false);
     
     if (pendingProduct) {
-      addProductToCart(pendingProduct);
+      await addProductToCart(pendingProduct);
       setPendingProduct(null);
     }
   };
@@ -479,7 +479,7 @@ export default function PDV() {
       setProductToSelectVariation(product);
       setShowSelectVariationDialog(true);
     } else {
-      addProductToCart(product, variation);
+      await addProductToCart(product, variation);
     }
   };
 
@@ -597,7 +597,7 @@ export default function PDV() {
     }
   };
 
-  const handleSelectVariationAndAddToCart = () => {
+  const handleSelectVariationAndAddToCart = async () => {
     if (!productToSelectVariation || !selectedVariationForProduct) {
       toast({
         variant: "destructive",
@@ -606,7 +606,7 @@ export default function PDV() {
       });
       return;
     }
-    addProductToCart(productToSelectVariation, selectedVariationForProduct);
+    await addProductToCart(productToSelectVariation, selectedVariationForProduct);
     setShowSelectVariationDialog(false);
     setProductToSelectVariation(null);
     setSelectedVariationForProduct(null);
@@ -923,24 +923,25 @@ export default function PDV() {
   };
 
   const finishOrder = async () => {
-    // Move calculations to the top
-    const monetarySubtotal = cart.reduce((sum, item) => 
-      sum + (item.isRedeemedWithPoints ? 0 : (item.price * item.quantity)), 0
-    );
-    const pointsToRedeem = cart.reduce((sum, item) => 
-      sum + (item.isRedeemedWithPoints ? (item.redemption_points_cost * item.quantity) : 0), 0
-    );
-    const deliveryAmount = isDelivery && deliveryFee ? parseFloat(deliveryFee) : 0;
-    const totalMonetary = monetarySubtotal + deliveryAmount; // Total a ser pago em dinheiro/cartão/pix
+    try {
+      // Move calculations to the top
+      const monetarySubtotal = cart.reduce((sum, item) => 
+        sum + (item.isRedeemedWithPoints ? 0 : (item.price * item.quantity)), 0
+      );
+      const pointsToRedeem = cart.reduce((sum, item) => 
+        sum + (item.isRedeemedWithPoints ? (item.redemption_points_cost * item.quantity) : 0), 0
+      );
+      const deliveryAmount = isDelivery && deliveryFee ? parseFloat(deliveryFee) : 0;
+      const totalMonetary = monetarySubtotal + deliveryAmount; // Total a ser pago em dinheiro/cartão/pix
 
-    if (cart.length === 0) {
-      toast({
-        variant: "destructive",
-        title: "Carrinho vazio",
-        description: "Adicione produtos antes de finalizar",
-      });
-      return;
-    }
+      if (cart.length === 0) {
+        toast({
+          variant: "destructive",
+          title: "Carrinho vazio",
+          description: "Adicione produtos antes de finalizar",
+        });
+        return;
+      }
 
     // Modificação aqui: paymentMethod é obrigatório SOMENTE se houver um total monetário > 0
     if (totalMonetary > 0 && !paymentMethod) {
@@ -1300,14 +1301,22 @@ export default function PDV() {
       await handleSaveAddress();
     }
 
-    // Mostrar animação de moeda
-    setShowCoinAnimation(true);
-    setTimeout(() => setShowCoinAnimation(false), 1500);
+      // Mostrar animação de moeda
+      setShowCoinAnimation(true);
+      setTimeout(() => setShowCoinAnimation(false), 1500);
 
-    printOrder(orderNumber);
-    clearCart();
-    setShowPaymentDialog(false);
-    loadProductsAndVariations(); // Recarregar produtos e variações para refletir o estoque atualizado
+      printOrder(orderNumber);
+      clearCart();
+      setShowPaymentDialog(false);
+      loadProductsAndVariations(); // Recarregar produtos e variações para refletir o estoque atualizado
+    } catch (error: any) {
+      console.error("Erro ao finalizar pedido:", error);
+      toast({
+        variant: "destructive",
+        title: "Erro ao finalizar pedido",
+        description: error?.message || "Ocorreu um erro inesperado. O pedido pode ter sido criado parcialmente.",
+      });
+    }
   };
 
   const sourceIcons = {
