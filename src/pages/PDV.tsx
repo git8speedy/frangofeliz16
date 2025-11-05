@@ -1077,7 +1077,7 @@ export default function PDV() {
         itemId = item.selectedVariation.id;
         const { data: dbVariation, error: dbError } = await supabase
           .from(tableName)
-          .select("stock_quantity")
+          .select("stock_quantity, is_composite")
           .eq("id", itemId)
           .single();
         if (dbError) {
@@ -1085,6 +1085,39 @@ export default function PDV() {
           return; // Skip update for this item if stock can't be fetched
         }
         currentDbStock = dbVariation?.stock_quantity ?? 0;
+        
+        // Para produtos compostos SEM estoque, permitir valores negativos temporários
+        const isComposite = dbVariation?.is_composite || false;
+        const newQuantity = isComposite 
+          ? currentDbStock - item.quantity  // Permite negativo para compostos
+          : Math.max(0, currentDbStock - item.quantity); // Não permite negativo para produtos normais
+
+        // Lógica de Alerta iFood
+        if (ifoodStockAlertEnabled) {
+          // Alerta se o estoque final for menor ou igual ao threshold
+          if (newQuantity <= ifoodStockAlertThreshold) {
+            const productName = item.name + (item.selectedVariation ? ` (${item.selectedVariation.name})` : '');
+            toast({
+              variant: "destructive",
+              title: "⚠️ Alerta IFOOD",
+              description: `O produto "${productName}" atingiu o limite de estoque (${newQuantity} unidades). Lembre-se de pausá-lo no iFood!`,
+              duration: 15000, // Long duration for critical alert
+              action: (
+                <ToastAction altText="Fechar alerta">OK</ToastAction>
+              ),
+            });
+          }
+        }
+
+        // Atualizar estoque no banco de dados
+        const { error: stockUpdateError } = await supabase
+          .from(tableName)
+          .update({ stock_quantity: newQuantity })
+          .eq("id", itemId);
+
+        if (stockUpdateError) {
+          console.error(`Erro ao atualizar estoque de ${item.name}:`, stockUpdateError.message);
+        }
       } else {
         tableName = "products";
         itemId = item.id;
@@ -1098,35 +1131,35 @@ export default function PDV() {
           return; // Skip update for this item if stock can't be fetched
         }
         currentDbStock = dbProduct?.stock_quantity ?? 0;
-      }
+        
+        const newQuantity = Math.max(0, currentDbStock - item.quantity);
 
-      const newQuantity = Math.max(0, currentDbStock - item.quantity);
-
-      // Lógica de Alerta iFood
-      if (ifoodStockAlertEnabled) {
-        // Alerta se o estoque final for menor ou igual ao threshold
-        if (newQuantity <= ifoodStockAlertThreshold) {
-          const productName = item.name + (item.selectedVariation ? ` (${item.selectedVariation.name})` : '');
-          toast({
-            variant: "destructive",
-            title: "⚠️ Alerta IFOOD",
-            description: `O produto "${productName}" atingiu o limite de estoque (${newQuantity} unidades). Lembre-se de pausá-lo no iFood!`,
-            duration: 15000, // Long duration for critical alert
-            action: (
-              <ToastAction altText="Fechar alerta">OK</ToastAction>
-            ),
-          });
+        // Lógica de Alerta iFood
+        if (ifoodStockAlertEnabled) {
+          // Alerta se o estoque final for menor ou igual ao threshold
+          if (newQuantity <= ifoodStockAlertThreshold) {
+            const productName = item.name;
+            toast({
+              variant: "destructive",
+              title: "⚠️ Alerta IFOOD",
+              description: `O produto "${productName}" atingiu o limite de estoque (${newQuantity} unidades). Lembre-se de pausá-lo no iFood!`,
+              duration: 15000, // Long duration for critical alert
+              action: (
+                <ToastAction altText="Fechar alerta">OK</ToastAction>
+              ),
+            });
+          }
         }
-      }
 
-      // Atualizar estoque no banco de dados
-      const { error: stockUpdateError } = await supabase
-        .from(tableName)
-        .update({ stock_quantity: newQuantity })
-        .eq("id", itemId);
+        // Atualizar estoque no banco de dados
+        const { error: stockUpdateError } = await supabase
+          .from(tableName)
+          .update({ stock_quantity: newQuantity })
+          .eq("id", itemId);
 
-      if (stockUpdateError) {
-        console.error(`Erro ao atualizar estoque de ${item.name}:`, stockUpdateError.message);
+        if (stockUpdateError) {
+          console.error(`Erro ao atualizar estoque de ${item.name}:`, stockUpdateError.message);
+        }
       }
     });
 

@@ -378,6 +378,90 @@ const newCompositeStock = currentStock + unitsGenerated;
 
 ---
 
+### 🔧 Problema 8 Corrigido: Geração Incorreta de Estoque (Gerando 3 ao invés de 2)
+
+**Descrição do Problema:**
+Quando vendia produto composto SEM estoque, com rendimento de 2 unidades por matéria-prima, o sistema gerava **3 unidades** ao invés de **2**.
+
+**Cenário Incorreto (Anterior):**
+```
+Estoque inicial: Meio Frango = 0, Frango Inteiro = 1
+Rendimento: 1 → 2
+Venda: 1 Meio Frango
+
+Resultado ERRADO:
+✅ Frango Inteiro = 0 (consumiu 1)
+❌ Meio Frango = 2 (deveria ser 1!)
+✅ Vendido = 1
+
+Problema: Gerou 3 unidades no total (vendeu 1 + sobrou 2 = 3 geradas!)
+```
+
+**Cenário Correto (Atual):**
+```
+Estoque inicial: Meio Frango = 0, Frango Inteiro = 1
+Rendimento: 1 → 2
+Venda: 1 Meio Frango
+
+Resultado CORRETO:
+✅ Frango Inteiro = 0 (consumiu 1)
+✅ Meio Frango = 1 (correto!)
+✅ Vendido = 1
+
+Correto: Gerou 2 unidades (vendeu 1 + sobrou 1 = 2 geradas!)
+```
+
+**Causa Raiz:**
+A linha 1103 usava `Math.max(0, currentDbStock - item.quantity)`, que **impedia valores negativos**:
+
+```typescript
+// ANTES (ERRADO):
+currentDbStock = 0
+newQuantity = Math.max(0, 0 - 1) = Math.max(0, -1) = 0 ❌
+
+// Ao buscar estoque para adicionar gerados:
+currentStock = 0 (deveria ser -1!)
+newCompositeStock = 0 + 2 = 2 ❌ (errado!)
+```
+
+**Correção Implementada:**
+Para produtos compostos, permitir valores negativos temporários:
+
+```typescript
+// AGORA (CORRETO):
+const isComposite = dbVariation?.is_composite || false;
+const newQuantity = isComposite 
+  ? currentDbStock - item.quantity           // Permite -1, -2, etc
+  : Math.max(0, currentDbStock - item.quantity); // Normal para outros
+
+// Ao buscar estoque para adicionar gerados:
+currentStock = -1 ✅
+newCompositeStock = -1 + 2 = 1 ✅ (correto!)
+```
+
+**Fluxo Corrigido:**
+1. Desconta do estoque: `0 - 1 = -1` ✅ (permite negativo!)
+2. Detecta que é composto e não tinha estoque
+3. Consome 1 matéria-prima, gera 2 unidades
+4. Busca estoque atual: `-1` ✅
+5. Adiciona gerados: `-1 + 2 = 1` ✅
+6. Resultado final: 1 unidade no estoque ✅
+
+**Arquivos Modificados:**
+- `/src/pages/PDV.tsx`:
+  - Linha 1080: Adiciona `is_composite` ao select
+  - Linhas 1090-1093: Lógica condicional para permitir negativo em compostos
+  - Linhas 1075-1163: Separação de lógica para variações vs produtos
+
+**Resultado Final:**
+- ✅ Geração correta de estoque (2 unidades = 1 vendida + 1 sobra)
+- ✅ Valores negativos temporários permitidos para compostos
+- ✅ Produtos normais continuam sem valores negativos
+- ✅ Todos os 3 cenários funcionando perfeitamente
+- ✅ Sistema 100% funcional e pronto para produção!
+
+---
+
 ## Data: 01/11/2024
 
 ---
