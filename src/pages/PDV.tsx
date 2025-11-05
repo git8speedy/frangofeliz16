@@ -1218,7 +1218,10 @@ export default function PDV() {
 
       // Novo estoque = estoque atual (já descontado) + unidades geradas
       // Exemplo: Estoque era 0, vendeu 1 (ficou -1), gera 2 (fica 1)
-      const newCompositeStock = currentVariation.stock_quantity + unitsGenerated;
+      const currentStock = currentVariation?.stock_quantity ?? 0;
+      const newCompositeStock = currentStock + unitsGenerated;
+
+      console.log(`DEBUG: Produto composto ${item.name}: estoque atual = ${currentStock}, gerando ${unitsGenerated}, novo = ${newCompositeStock}`);
 
       const { error: updateCompositeError } = await supabase
         .from("product_variations")
