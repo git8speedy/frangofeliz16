@@ -462,6 +462,60 @@ newCompositeStock = -1 + 2 = 1 ✅ (correto!)
 
 ---
 
+### 🔧 Problema 9 Corrigido: Alerta iFood para Estoques Negativos
+
+**Descrição do Problema:**
+O sistema emitia alerta iFood mesmo quando o estoque estava negativo (produtos compostos sem estoque usando matéria-prima).
+
+**Comportamento Incorreto (Anterior):**
+```
+Produto composto sem estoque:
+- Vende 1 unidade
+- Estoque fica -1 (temporariamente, até gerar)
+❌ Emite alerta: "atingiu o limite de estoque (-1 unidades)"
+❌ Alerta desnecessário e confuso
+```
+
+**Comportamento Correto (Atual):**
+```
+Produto composto sem estoque:
+- Vende 1 unidade
+- Estoque fica -1 (temporariamente)
+✅ NÃO emite alerta (estoque negativo é temporário)
+✅ Após gerar: estoque volta a 1
+✅ Alerta só para estoques entre 0 e threshold
+```
+
+**Correção Implementada:**
+Adicionada verificação `newQuantity >= 0` antes de emitir alerta:
+
+```typescript
+// ANTES (ERRADO):
+if (newQuantity <= ifoodStockAlertThreshold) {
+  // Emitia alerta para -1, -2, etc ❌
+}
+
+// AGORA (CORRETO):
+if (newQuantity >= 0 && newQuantity <= ifoodStockAlertThreshold) {
+  // Só alerta para 0, 1, 2, ... até threshold ✅
+}
+```
+
+**Arquivos Modificados:**
+- `/src/pages/PDV.tsx`:
+  - Linha 1099: Adiciona verificação `newQuantity >= 0` (variações)
+  - Linha 1142: Adiciona verificação `newQuantity >= 0` (produtos)
+  - Comentários explicativos sobre estoques negativos temporários
+
+**Resultado Final:**
+- ✅ Alerta iFood só para estoques entre 0 e threshold
+- ✅ Não alerta para estoques negativos temporários
+- ✅ Alertas mais precisos e relevantes
+- ✅ Menos alertas desnecessários
+- ✅ Melhor experiência do usuário
+
+---
+
 ## Data: 01/11/2024
 
 ---

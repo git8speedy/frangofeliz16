@@ -1094,8 +1094,9 @@ export default function PDV() {
 
         // Lógica de Alerta iFood
         if (ifoodStockAlertEnabled) {
-          // Alerta se o estoque final for menor ou igual ao threshold
-          if (newQuantity <= ifoodStockAlertThreshold) {
+          // Alerta se o estoque final for menor ou igual ao threshold E maior ou igual a 0
+          // Não alertar para estoques negativos (produtos compostos sem estoque usando matéria-prima)
+          if (newQuantity >= 0 && newQuantity <= ifoodStockAlertThreshold) {
             const productName = item.name + (item.selectedVariation ? ` (${item.selectedVariation.name})` : '');
             toast({
               variant: "destructive",
@@ -1136,8 +1137,9 @@ export default function PDV() {
 
         // Lógica de Alerta iFood
         if (ifoodStockAlertEnabled) {
-          // Alerta se o estoque final for menor ou igual ao threshold
-          if (newQuantity <= ifoodStockAlertThreshold) {
+          // Alerta se o estoque final for menor ou igual ao threshold E maior ou igual a 0
+          // Não alertar para estoques negativos
+          if (newQuantity >= 0 && newQuantity <= ifoodStockAlertThreshold) {
             const productName = item.name;
             toast({
               variant: "destructive",
