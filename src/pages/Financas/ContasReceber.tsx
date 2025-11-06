@@ -69,7 +69,15 @@ export default function ContasReceber() {
     e.preventDefault();
     if (!profile?.store_id) return;
 
-    const data = { ...formData, amount: parseFloat(formData.amount), store_id: profile.store_id, status: 'pendente' as const };
+    const data = {
+      customer_name: formData.customer_name || null,
+      customer_phone: formData.customer_phone || null,
+      description: formData.description,
+      amount: parseFloat(formData.amount),
+      due_date: formData.due_date,
+      store_id: profile.store_id,
+      status: 'pendente' as const,
+    };
 
     if (editingReceivable) {
       await updateReceivable.mutateAsync({ id: editingReceivable.id, ...data });

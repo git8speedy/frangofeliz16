@@ -147,9 +147,18 @@ export default function Lancamentos({ triggerNew, onTriggerComplete }: Lancament
     
     if (!profile?.store_id) return;
 
+    // Prepare transaction data, converting empty strings to null for UUID fields
     const transactionData = {
-      ...formData,
+      type: formData.type,
+      description: formData.description,
       amount: parseFloat(formData.amount),
+      transaction_date: formData.transaction_date,
+      status: formData.status,
+      payment_method: formData.payment_method || null,
+      notes: formData.notes || null,
+      category_id: formData.category_id || null,
+      bank_account_id: formData.bank_account_id || null,
+      credit_card_id: formData.credit_card_id || null,
       store_id: profile.store_id,
       created_by: profile.id,
       is_recurring: false,
