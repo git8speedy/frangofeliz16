@@ -235,10 +235,9 @@ export default function ContasReceber() {
           <div className="space-y-4">
             <div className="space-y-2">
               <Label>Conta Bancária (opcional)</Label>
-              <Select value={receiveData.bank_account_id} onValueChange={(value) => setReceiveData({ ...receiveData, bank_account_id: value })}>
-                <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+              <Select value={receiveData.bank_account_id || undefined} onValueChange={(value) => setReceiveData({ ...receiveData, bank_account_id: value })}>
+                <SelectTrigger><SelectValue placeholder="Selecione uma conta" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Nenhuma</SelectItem>
                   {accounts.map((acc) => (
                     <SelectItem key={acc.id} value={acc.id}>{acc.name}</SelectItem>
                   ))}

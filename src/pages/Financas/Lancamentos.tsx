@@ -404,16 +404,15 @@ export default function Lancamentos() {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Categoria</Label>
+                <Label>Categoria (opcional)</Label>
                 <Select
-                  value={formData.category_id}
+                  value={formData.category_id || undefined}
                   onValueChange={(value) => setFormData({ ...formData, category_id: value })}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Selecione" />
+                    <SelectValue placeholder="Selecione uma categoria" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Nenhuma</SelectItem>
                     {filteredCategories.map((cat) => (
                       <SelectItem key={cat.id} value={cat.id}>
                         {cat.name}
@@ -435,16 +434,15 @@ export default function Lancamentos() {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Conta Bancária</Label>
+                <Label>Conta Bancária (opcional)</Label>
                 <Select
-                  value={formData.bank_account_id}
+                  value={formData.bank_account_id || undefined}
                   onValueChange={(value) => setFormData({ ...formData, bank_account_id: value, credit_card_id: '' })}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Selecione" />
+                    <SelectValue placeholder="Selecione uma conta" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Nenhuma</SelectItem>
                     {accounts.map((acc) => (
                       <SelectItem key={acc.id} value={acc.id}>
                         {acc.name}
@@ -455,16 +453,15 @@ export default function Lancamentos() {
               </div>
 
               <div className="space-y-2">
-                <Label>Cartão de Crédito</Label>
+                <Label>Cartão de Crédito (opcional)</Label>
                 <Select
-                  value={formData.credit_card_id}
+                  value={formData.credit_card_id || undefined}
                   onValueChange={(value) => setFormData({ ...formData, credit_card_id: value, bank_account_id: '' })}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Selecione" />
+                    <SelectValue placeholder="Selecione um cartão" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Nenhum</SelectItem>
                     {cards.map((card) => (
                       <SelectItem key={card.id} value={card.id}>
                         {card.name}
