@@ -17,8 +17,8 @@ CREATE TABLE IF NOT EXISTS financial_categories (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()
 );
 
-CREATE INDEX idx_financial_categories_store ON financial_categories(store_id);
-CREATE INDEX idx_financial_categories_type ON financial_categories(type);
+CREATE INDEX IF NOT EXISTS idx_financial_categories_store ON financial_categories(store_id);
+CREATE INDEX IF NOT EXISTS idx_financial_categories_type ON financial_categories(type);
 
 -- 2. TABELA DE CONTAS BANCÁRIAS
 -- ============================================
@@ -38,8 +38,8 @@ CREATE TABLE IF NOT EXISTS bank_accounts (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()
 );
 
-CREATE INDEX idx_bank_accounts_store ON bank_accounts(store_id);
-CREATE INDEX idx_bank_accounts_active ON bank_accounts(is_active);
+CREATE INDEX IF NOT EXISTS idx_bank_accounts_store ON bank_accounts(store_id);
+CREATE INDEX IF NOT EXISTS idx_bank_accounts_active ON bank_accounts(is_active);
 
 -- 3. TABELA DE CARTÕES DE CRÉDITO
 -- ============================================
@@ -58,8 +58,8 @@ CREATE TABLE IF NOT EXISTS credit_cards (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()
 );
 
-CREATE INDEX idx_credit_cards_store ON credit_cards(store_id);
-CREATE INDEX idx_credit_cards_active ON credit_cards(is_active);
+CREATE INDEX IF NOT EXISTS idx_credit_cards_store ON credit_cards(store_id);
+CREATE INDEX IF NOT EXISTS idx_credit_cards_active ON credit_cards(is_active);
 
 -- 4. TABELA DE LANÇAMENTOS FINANCEIROS
 -- ============================================
@@ -95,13 +95,13 @@ CREATE TABLE IF NOT EXISTS financial_transactions (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()
 );
 
-CREATE INDEX idx_financial_transactions_store ON financial_transactions(store_id);
-CREATE INDEX idx_financial_transactions_category ON financial_transactions(category_id);
-CREATE INDEX idx_financial_transactions_type ON financial_transactions(type);
-CREATE INDEX idx_financial_transactions_status ON financial_transactions(status);
-CREATE INDEX idx_financial_transactions_date ON financial_transactions(transaction_date);
-CREATE INDEX idx_financial_transactions_bank_account ON financial_transactions(bank_account_id);
-CREATE INDEX idx_financial_transactions_credit_card ON financial_transactions(credit_card_id);
+CREATE INDEX IF NOT EXISTS idx_financial_transactions_store ON financial_transactions(store_id);
+CREATE INDEX IF NOT EXISTS idx_financial_transactions_category ON financial_transactions(category_id);
+CREATE INDEX IF NOT EXISTS idx_financial_transactions_type ON financial_transactions(type);
+CREATE INDEX IF NOT EXISTS idx_financial_transactions_status ON financial_transactions(status);
+CREATE INDEX IF NOT EXISTS idx_financial_transactions_date ON financial_transactions(transaction_date);
+CREATE INDEX IF NOT EXISTS idx_financial_transactions_bank_account ON financial_transactions(bank_account_id);
+CREATE INDEX IF NOT EXISTS idx_financial_transactions_credit_card ON financial_transactions(credit_card_id);
 
 -- 5. TABELA DE CONTAS A RECEBER
 -- ============================================
@@ -128,9 +128,9 @@ CREATE TABLE IF NOT EXISTS accounts_receivable (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()
 );
 
-CREATE INDEX idx_accounts_receivable_store ON accounts_receivable(store_id);
-CREATE INDEX idx_accounts_receivable_status ON accounts_receivable(status);
-CREATE INDEX idx_accounts_receivable_due_date ON accounts_receivable(due_date);
+CREATE INDEX IF NOT EXISTS idx_accounts_receivable_store ON accounts_receivable(store_id);
+CREATE INDEX IF NOT EXISTS idx_accounts_receivable_status ON accounts_receivable(status);
+CREATE INDEX IF NOT EXISTS idx_accounts_receivable_due_date ON accounts_receivable(due_date);
 
 -- 6. TABELA QUADRO DOS SONHOS
 -- ============================================
@@ -155,8 +155,8 @@ CREATE TABLE IF NOT EXISTS dream_board (
   completed_at TIMESTAMP WITH TIME ZONE
 );
 
-CREATE INDEX idx_dream_board_store ON dream_board(store_id);
-CREATE INDEX idx_dream_board_status ON dream_board(status);
+CREATE INDEX IF NOT EXISTS idx_dream_board_store ON dream_board(store_id);
+CREATE INDEX IF NOT EXISTS idx_dream_board_status ON dream_board(status);
 
 -- 7. TABELA DE METAS FINANCEIRAS
 -- ============================================
@@ -177,8 +177,8 @@ CREATE TABLE IF NOT EXISTS financial_goals (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()
 );
 
-CREATE INDEX idx_financial_goals_store ON financial_goals(store_id);
-CREATE INDEX idx_financial_goals_period ON financial_goals(period_start, period_end);
+CREATE INDEX IF NOT EXISTS idx_financial_goals_store ON financial_goals(store_id);
+CREATE INDEX IF NOT EXISTS idx_financial_goals_period ON financial_goals(period_start, period_end);
 
 -- 8. TABELA DE NOTIFICAÇÕES FINANCEIRAS
 -- ============================================
@@ -198,8 +198,8 @@ CREATE TABLE IF NOT EXISTS financial_notifications (
   read_at TIMESTAMP WITH TIME ZONE
 );
 
-CREATE INDEX idx_financial_notifications_store ON financial_notifications(store_id);
-CREATE INDEX idx_financial_notifications_read ON financial_notifications(is_read);
+CREATE INDEX IF NOT EXISTS idx_financial_notifications_store ON financial_notifications(store_id);
+CREATE INDEX IF NOT EXISTS idx_financial_notifications_read ON financial_notifications(is_read);
 
 -- ============================================
 -- TRIGGERS PARA ATUALIZAR updated_at
@@ -213,24 +213,31 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS update_financial_categories_updated_at ON financial_categories;
 CREATE TRIGGER update_financial_categories_updated_at BEFORE UPDATE ON financial_categories
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_bank_accounts_updated_at ON bank_accounts;
 CREATE TRIGGER update_bank_accounts_updated_at BEFORE UPDATE ON bank_accounts
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_credit_cards_updated_at ON credit_cards;
 CREATE TRIGGER update_credit_cards_updated_at BEFORE UPDATE ON credit_cards
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_financial_transactions_updated_at ON financial_transactions;
 CREATE TRIGGER update_financial_transactions_updated_at BEFORE UPDATE ON financial_transactions
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_accounts_receivable_updated_at ON accounts_receivable;
 CREATE TRIGGER update_accounts_receivable_updated_at BEFORE UPDATE ON accounts_receivable
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_dream_board_updated_at ON dream_board;
 CREATE TRIGGER update_dream_board_updated_at BEFORE UPDATE ON dream_board
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_financial_goals_updated_at ON financial_goals;
 CREATE TRIGGER update_financial_goals_updated_at BEFORE UPDATE ON financial_goals
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
@@ -294,6 +301,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS update_bank_balance_on_transaction ON financial_transactions;
 CREATE TRIGGER update_bank_balance_on_transaction 
   AFTER INSERT OR UPDATE ON financial_transactions
   FOR EACH ROW EXECUTE FUNCTION update_bank_account_balance();
@@ -312,133 +320,164 @@ ALTER TABLE financial_goals ENABLE ROW LEVEL SECURITY;
 ALTER TABLE financial_notifications ENABLE ROW LEVEL SECURITY;
 
 -- Policies para financial_categories
+DROP POLICY IF EXISTS "Users can view their store's financial categories" ON financial_categories;
 CREATE POLICY "Users can view their store's financial categories" 
   ON financial_categories FOR SELECT 
   USING (store_id IN (SELECT store_id FROM profiles WHERE id = auth.uid()));
 
+DROP POLICY IF EXISTS "Users can insert their store's financial categories" ON financial_categories;
 CREATE POLICY "Users can insert their store's financial categories" 
   ON financial_categories FOR INSERT 
   WITH CHECK (store_id IN (SELECT store_id FROM profiles WHERE id = auth.uid()));
 
+DROP POLICY IF EXISTS "Users can update their store's financial categories" ON financial_categories;
 CREATE POLICY "Users can update their store's financial categories" 
   ON financial_categories FOR UPDATE 
   USING (store_id IN (SELECT store_id FROM profiles WHERE id = auth.uid()));
 
+DROP POLICY IF EXISTS "Users can delete their store's financial categories" ON financial_categories;
 CREATE POLICY "Users can delete their store's financial categories" 
   ON financial_categories FOR DELETE 
   USING (store_id IN (SELECT store_id FROM profiles WHERE id = auth.uid()));
 
 -- Policies para bank_accounts
+DROP POLICY IF EXISTS "Users can view their store's bank accounts" ON bank_accounts;
 CREATE POLICY "Users can view their store's bank accounts" 
   ON bank_accounts FOR SELECT 
   USING (store_id IN (SELECT store_id FROM profiles WHERE id = auth.uid()));
 
+DROP POLICY IF EXISTS "Users can insert their store's bank accounts" ON bank_accounts;
 CREATE POLICY "Users can insert their store's bank accounts" 
   ON bank_accounts FOR INSERT 
   WITH CHECK (store_id IN (SELECT store_id FROM profiles WHERE id = auth.uid()));
 
+DROP POLICY IF EXISTS "Users can update their store's bank accounts" ON bank_accounts;
 CREATE POLICY "Users can update their store's bank accounts" 
   ON bank_accounts FOR UPDATE 
   USING (store_id IN (SELECT store_id FROM profiles WHERE id = auth.uid()));
 
+DROP POLICY IF EXISTS "Users can delete their store's bank accounts" ON bank_accounts;
 CREATE POLICY "Users can delete their store's bank accounts" 
   ON bank_accounts FOR DELETE 
   USING (store_id IN (SELECT store_id FROM profiles WHERE id = auth.uid()));
 
 -- Policies para credit_cards
+DROP POLICY IF EXISTS "Users can view their store's credit cards" ON credit_cards;
 CREATE POLICY "Users can view their store's credit cards" 
   ON credit_cards FOR SELECT 
   USING (store_id IN (SELECT store_id FROM profiles WHERE id = auth.uid()));
 
+DROP POLICY IF EXISTS "Users can insert their store's credit cards" ON credit_cards;
 CREATE POLICY "Users can insert their store's credit cards" 
   ON credit_cards FOR INSERT 
   WITH CHECK (store_id IN (SELECT store_id FROM profiles WHERE id = auth.uid()));
 
+DROP POLICY IF EXISTS "Users can update their store's credit cards" ON credit_cards;
 CREATE POLICY "Users can update their store's credit cards" 
   ON credit_cards FOR UPDATE 
   USING (store_id IN (SELECT store_id FROM profiles WHERE id = auth.uid()));
 
+DROP POLICY IF EXISTS "Users can delete their store's credit cards" ON credit_cards;
 CREATE POLICY "Users can delete their store's credit cards" 
   ON credit_cards FOR DELETE 
   USING (store_id IN (SELECT store_id FROM profiles WHERE id = auth.uid()));
 
 -- Policies para financial_transactions
+DROP POLICY IF EXISTS "Users can view their store's financial transactions" ON financial_transactions;
 CREATE POLICY "Users can view their store's financial transactions" 
   ON financial_transactions FOR SELECT 
   USING (store_id IN (SELECT store_id FROM profiles WHERE id = auth.uid()));
 
+DROP POLICY IF EXISTS "Users can insert their store's financial transactions" ON financial_transactions;
 CREATE POLICY "Users can insert their store's financial transactions" 
   ON financial_transactions FOR INSERT 
   WITH CHECK (store_id IN (SELECT store_id FROM profiles WHERE id = auth.uid()));
 
+DROP POLICY IF EXISTS "Users can update their store's financial transactions" ON financial_transactions;
 CREATE POLICY "Users can update their store's financial transactions" 
   ON financial_transactions FOR UPDATE 
   USING (store_id IN (SELECT store_id FROM profiles WHERE id = auth.uid()));
 
+DROP POLICY IF EXISTS "Users can delete their store's financial transactions" ON financial_transactions;
 CREATE POLICY "Users can delete their store's financial transactions" 
   ON financial_transactions FOR DELETE 
   USING (store_id IN (SELECT store_id FROM profiles WHERE id = auth.uid()));
 
 -- Policies para accounts_receivable
+DROP POLICY IF EXISTS "Users can view their store's accounts receivable" ON accounts_receivable;
 CREATE POLICY "Users can view their store's accounts receivable" 
   ON accounts_receivable FOR SELECT 
   USING (store_id IN (SELECT store_id FROM profiles WHERE id = auth.uid()));
 
+DROP POLICY IF EXISTS "Users can insert their store's accounts receivable" ON accounts_receivable;
 CREATE POLICY "Users can insert their store's accounts receivable" 
   ON accounts_receivable FOR INSERT 
   WITH CHECK (store_id IN (SELECT store_id FROM profiles WHERE id = auth.uid()));
 
+DROP POLICY IF EXISTS "Users can update their store's accounts receivable" ON accounts_receivable;
 CREATE POLICY "Users can update their store's accounts receivable" 
   ON accounts_receivable FOR UPDATE 
   USING (store_id IN (SELECT store_id FROM profiles WHERE id = auth.uid()));
 
+DROP POLICY IF EXISTS "Users can delete their store's accounts receivable" ON accounts_receivable;
 CREATE POLICY "Users can delete their store's accounts receivable" 
   ON accounts_receivable FOR DELETE 
   USING (store_id IN (SELECT store_id FROM profiles WHERE id = auth.uid()));
 
 -- Policies para dream_board
+DROP POLICY IF EXISTS "Users can view their store's dream board" ON dream_board;
 CREATE POLICY "Users can view their store's dream board" 
   ON dream_board FOR SELECT 
   USING (store_id IN (SELECT store_id FROM profiles WHERE id = auth.uid()));
 
+DROP POLICY IF EXISTS "Users can insert their store's dream board" ON dream_board;
 CREATE POLICY "Users can insert their store's dream board" 
   ON dream_board FOR INSERT 
   WITH CHECK (store_id IN (SELECT store_id FROM profiles WHERE id = auth.uid()));
 
+DROP POLICY IF EXISTS "Users can update their store's dream board" ON dream_board;
 CREATE POLICY "Users can update their store's dream board" 
   ON dream_board FOR UPDATE 
   USING (store_id IN (SELECT store_id FROM profiles WHERE id = auth.uid()));
 
+DROP POLICY IF EXISTS "Users can delete their store's dream board" ON dream_board;
 CREATE POLICY "Users can delete their store's dream board" 
   ON dream_board FOR DELETE 
   USING (store_id IN (SELECT store_id FROM profiles WHERE id = auth.uid()));
 
 -- Policies para financial_goals
+DROP POLICY IF EXISTS "Users can view their store's financial goals" ON financial_goals;
 CREATE POLICY "Users can view their store's financial goals" 
   ON financial_goals FOR SELECT 
   USING (store_id IN (SELECT store_id FROM profiles WHERE id = auth.uid()));
 
+DROP POLICY IF EXISTS "Users can insert their store's financial goals" ON financial_goals;
 CREATE POLICY "Users can insert their store's financial goals" 
   ON financial_goals FOR INSERT 
   WITH CHECK (store_id IN (SELECT store_id FROM profiles WHERE id = auth.uid()));
 
+DROP POLICY IF EXISTS "Users can update their store's financial goals" ON financial_goals;
 CREATE POLICY "Users can update their store's financial goals" 
   ON financial_goals FOR UPDATE 
   USING (store_id IN (SELECT store_id FROM profiles WHERE id = auth.uid()));
 
+DROP POLICY IF EXISTS "Users can delete their store's financial goals" ON financial_goals;
 CREATE POLICY "Users can delete their store's financial goals" 
   ON financial_goals FOR DELETE 
   USING (store_id IN (SELECT store_id FROM profiles WHERE id = auth.uid()));
 
 -- Policies para financial_notifications
+DROP POLICY IF EXISTS "Users can view their store's financial notifications" ON financial_notifications;
 CREATE POLICY "Users can view their store's financial notifications" 
   ON financial_notifications FOR SELECT 
   USING (store_id IN (SELECT store_id FROM profiles WHERE id = auth.uid()));
 
+DROP POLICY IF EXISTS "Users can insert their store's financial notifications" ON financial_notifications;
 CREATE POLICY "Users can insert their store's financial notifications" 
   ON financial_notifications FOR INSERT 
   WITH CHECK (store_id IN (SELECT store_id FROM profiles WHERE id = auth.uid()));
 
+DROP POLICY IF EXISTS "Users can update their store's financial notifications" ON financial_notifications;
 CREATE POLICY "Users can update their store's financial notifications" 
   ON financial_notifications FOR UPDATE 
   USING (store_id IN (SELECT store_id FROM profiles WHERE id = auth.uid()));

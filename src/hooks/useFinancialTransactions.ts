@@ -35,9 +35,9 @@ export function useFinancialTransactions(filters?: FinancialReportFilters) {
         .select(`
           *,
           category:financial_categories(*),
-          bank_account:bank_accounts(*),
+          bank_account:bank_accounts!bank_account_id(*),
           credit_card:credit_cards(*),
-          transfer_to_account:bank_accounts(*)
+          transfer_to_account:bank_accounts!transfer_to_account_id(*)
         `)
         .eq('store_id', profile.store_id)
         .order('transaction_date', { ascending: false });

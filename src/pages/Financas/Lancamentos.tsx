@@ -36,6 +36,7 @@ import {
   ArrowUpCircle,
   ArrowDownCircle,
   Calendar,
+  CheckCircle,
 } from 'lucide-react';
 import { useFinancialTransactions } from '@/hooks/useFinancialTransactions';
 import { useFinancialCategories, useBankAccounts, useCreditCards } from '@/hooks/useFinancialData';
@@ -184,6 +185,14 @@ export default function Lancamentos({ triggerNew, onTriggerComplete }: Lancament
     await duplicateTransaction.mutateAsync(transaction);
   };
 
+  const handleQuickPay = async (transaction: FinancialTransaction) => {
+    const newStatus = transaction.type === 'receita' ? 'recebido' : 'pago';
+    await updateTransaction.mutateAsync({
+      id: transaction.id,
+      status: newStatus as TransactionStatus,
+    });
+  };
+
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
@@ -317,6 +326,18 @@ export default function Lancamentos({ triggerNew, onTriggerComplete }: Lancament
                       <TableCell>{getStatusBadge(transaction.status)}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
+                          {transaction.status === 'pendente' && (
+                            <Button
+                              size="sm"
+                              variant="default"
+                              onClick={() => handleQuickPay(transaction)}
+                              className="gap-1"
+                              title={transaction.type === 'receita' ? 'Marcar como Recebido' : 'Marcar como Pago'}
+                            >
+                              <CheckCircle className="h-4 w-4" />
+                              {transaction.type === 'receita' ? 'Receber' : 'Pagar'}
+                            </Button>
+                          )}
                           <Button
                             size="sm"
                             variant="ghost"
@@ -363,7 +384,17 @@ export default function Lancamentos({ triggerNew, onTriggerComplete }: Lancament
                 <Label>Tipo</Label>
                 <Select
                   value={formData.type}
-                  onValueChange={(value) => setFormData({ ...formData, type: value as TransactionType })}
+                  onValueChange={(value) => {
+                    const newType = value as TransactionType;
+                    // Ajustar status quando o tipo muda
+                    let newStatus = formData.status;
+                    if (newType === 'despesa' && formData.status === 'recebido') {
+                      newStatus = 'pendente';
+                    } else if (newType === 'receita' && formData.status === 'pago') {
+                      newStatus = 'pendente';
+                    }
+                    setFormData({ ...formData, type: newType, status: newStatus });
+                  }}
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -421,8 +452,18 @@ export default function Lancamentos({ triggerNew, onTriggerComplete }: Lancament
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="pendente">Pendente</SelectItem>
-                    <SelectItem value="pago">Pago</SelectItem>
-                    <SelectItem value="recebido">Recebido</SelectItem>
+                    {formData.type === 'despesa' && (
+                      <SelectItem value="pago">Pago</SelectItem>
+                    )}
+                    {formData.type === 'receita' && (
+                      <SelectItem value="recebido">Recebido</SelectItem>
+                    )}
+                    {formData.type === 'transferencia' && (
+                      <>
+                        <SelectItem value="pago">Pago</SelectItem>
+                        <SelectItem value="recebido">Recebido</SelectItem>
+                      </>
+                    )}
                     <SelectItem value="cancelado">Cancelado</SelectItem>
                   </SelectContent>
                 </Select>
