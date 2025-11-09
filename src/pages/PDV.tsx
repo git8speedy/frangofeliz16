@@ -793,6 +793,11 @@ export default function PDV() {
               margin-top: 5px;
               font-size: 14px;
             }
+            .header .datetime {
+              margin-top: 5px;
+              font-size: 12px;
+              opacity: 0.9;
+            }
             .content {
               padding: 10px;
             }
@@ -851,6 +856,7 @@ export default function PDV() {
           <div class="header">
             <h1>${customerNameForOrder.toUpperCase()}</h1>
             ${customerPhone !== 'N/A' ? `<div class="phone">${customerPhone}</div>` : ''}
+            <div class="datetime">${orderDate}</div>
           </div>
 
           <div class="content">
