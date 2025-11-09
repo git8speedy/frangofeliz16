@@ -433,7 +433,9 @@ export default function Totem() {
         const openDateTime = setMinutes(setHours(date, parseInt(openTime.split(':')[0])), parseInt(openTime.split(':')[1]));
         const closeDateTime = setMinutes(setHours(date, parseInt(closeTime.split(':')[0])), parseInt(closeTime.split(':')[1]));
         
-        return isAfter(pickupDateTime, openDateTime) && isBefore(pickupDateTime, closeDateTime);
+        // Permitir horários até o horário de fechamento (inclusive)
+        return (isAfter(pickupDateTime, openDateTime) || pickupDateTime.getTime() === openDateTime.getTime()) && 
+               (isBefore(pickupDateTime, closeDateTime) || pickupDateTime.getTime() === closeDateTime.getTime());
       }
     };
 
