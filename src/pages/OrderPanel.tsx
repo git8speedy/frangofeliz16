@@ -414,6 +414,18 @@ export default function OrderPanel() {
       hour: '2-digit',
       minute: '2-digit'
     });
+    
+    // Data e hora da reserva (se houver)
+    let reservationDateTime = '';
+    if (order.reservation_date) {
+      const reservationDate = new Date(order.reservation_date);
+      const dateStr = reservationDate.toLocaleDateString('pt-BR', { 
+        day: '2-digit', 
+        month: '2-digit', 
+        year: 'numeric'
+      });
+      reservationDateTime = order.pickup_time ? `${dateStr}, ${order.pickup_time}` : dateStr;
+    }
 
     let printContent = `
       <!DOCTYPE html>
@@ -445,14 +457,10 @@ export default function OrderPanel() {
               text-transform: uppercase;
               letter-spacing: 0.5px;
             }
-            .header .phone {
-              margin-top: 5px;
-              font-size: 14px;
-            }
             .header .datetime {
               margin-top: 5px;
-              font-size: 12px;
-              opacity: 0.9;
+              font-size: 13px;
+              opacity: 0.95;
             }
             .content {
               padding: 10px;
@@ -511,13 +519,13 @@ export default function OrderPanel() {
         <body>
           <div class="header">
             <h1>${customerName.toUpperCase()}</h1>
-            ${customerPhone !== 'N/A' ? `<div class="phone">${customerPhone}</div>` : ''}
-            <div class="datetime">${orderDate}</div>
+            ${reservationDateTime ? `<div class="datetime">${reservationDateTime}</div>` : ''}
           </div>
 
           <div class="content">
             <div class="order-info">
               <div>Pedido #${order.order_number}</div>
+              ${customerPhone !== 'N/A' ? `<div>Nº: ${customerPhone}</div>` : ''}
               <div>${orderDate}</div>
             </div>
 

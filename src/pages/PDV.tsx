@@ -758,6 +758,12 @@ export default function PDV() {
       hour: '2-digit',
       minute: '2-digit'
     });
+    
+    // Data e hora da reserva (se houver)
+    let reservationDateTime = '';
+    if (isReserva && reservaPickupTime) {
+      reservationDateTime = reservaPickupTime;
+    }
 
     let printContent = `
       <!DOCTYPE html>
@@ -789,14 +795,10 @@ export default function PDV() {
               text-transform: uppercase;
               letter-spacing: 0.5px;
             }
-            .header .phone {
-              margin-top: 5px;
-              font-size: 14px;
-            }
             .header .datetime {
               margin-top: 5px;
-              font-size: 12px;
-              opacity: 0.9;
+              font-size: 13px;
+              opacity: 0.95;
             }
             .content {
               padding: 10px;
@@ -855,13 +857,13 @@ export default function PDV() {
         <body>
           <div class="header">
             <h1>${customerNameForOrder.toUpperCase()}</h1>
-            ${customerPhone !== 'N/A' ? `<div class="phone">${customerPhone}</div>` : ''}
-            <div class="datetime">${orderDate}</div>
+            ${reservationDateTime ? `<div class="datetime">${reservationDateTime}</div>` : ''}
           </div>
 
           <div class="content">
             <div class="order-info">
               <div>Pedido #${orderNumber}</div>
+              ${customerPhone !== 'N/A' ? `<div>Nº: ${customerPhone}</div>` : ''}
               <div>${orderDate}</div>
             </div>
 
